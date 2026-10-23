@@ -177,6 +177,11 @@
                 <button id="btnEditTerm" onclick="openTermModal()" class="bounce-btn bg-purple-100 border-2 border-purple-300 text-purple-700 px-3.5 py-2 font-bold text-xs md:text-sm flex items-center gap-1.5 shadow-sm hidden">
                     <i class="fa-solid fa-calendar-days"></i> แก้ไขภาคเรียน/ปีการศึกษา
                 </button>
+                <!-- Cloud Sync Status Indicator -->
+                <div id="cloudSyncBadge" class="px-3 py-1.5 rounded-full bg-emerald-100 border-2 border-emerald-300 text-emerald-700 font-bold text-xs flex items-center gap-1.5 shadow-sm">
+                    <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-ping"></span>
+                    <i class="fa-solid fa-cloud"></i> <span id="cloudStatusText">เชื่อมต่อระบบคลาวด์แล้ว</span>
+                </div>
                 <button onclick="openChangePasswordModal()" class="bounce-btn bg-pastel-yellow border-2 border-yellow-300 text-yellow-800 px-3.5 py-2 font-bold text-xs md:text-sm flex items-center gap-1.5 shadow-sm">
                     <i class="fa-solid fa-key"></i> เปลี่ยนรหัสผ่าน
                 </button>
@@ -205,17 +210,17 @@
 
                 <form onsubmit="handleLogin(event)" class="space-y-4 relative z-10">
                     <div>
-                        <label class="block text-xs font-bold text-gray-600 mb-1 font-playful">รหัสนักเรียน / ชื่อผู้ใช้ (ครู: admin)</label>
+                        <label class="block text-xs font-bold text-gray-600 mb-1 font-playful">รหัสนักเรียน / ชื่อผู้ใช้</label>
                         <div class="relative">
                             <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-pink-400">
                                 <i class="fa-solid fa-user"></i>
                             </span>
-                            <input type="text" id="loginUsername" required placeholder="กรอกรหัสนักเรียน เช่น 1001" class="w-full pl-10 pr-4 py-3 rounded-full border-2 border-pink-100 focus:border-pink-300 focus:outline-none text-sm bg-white/90 shadow-inner">
+                            <input type="text" id="loginUsername" required placeholder="กรอกรหัสนักเรียนหรือชื่อผู้ใช้" class="w-full pl-10 pr-4 py-3 rounded-full border-2 border-pink-100 focus:border-pink-300 focus:outline-none text-sm bg-white/90 shadow-inner">
                         </div>
                     </div>
 
                     <div>
-                        <label class="block text-xs font-bold text-gray-600 mb-1 font-playful">รหัสผ่าน (เริ่มต้น: 1234)</label>
+                        <label class="block text-xs font-bold text-gray-600 mb-1 font-playful">รหัสผ่าน</label>
                         <div class="relative">
                             <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-pink-400">
                                 <i class="fa-solid fa-lock"></i>
@@ -228,7 +233,6 @@
                         <i class="fa-solid fa-sparkles"></i> เข้าสู่ระบบ
                     </button>
                 </form>
-
             </div>
         </section>
 
@@ -315,65 +319,69 @@
                             <button onclick="openOverdueSummaryModal()" class="bounce-btn px-3 py-1.5 bg-red-100 hover:bg-red-200 text-red-600 font-bold text-xs flex items-center gap-1 font-playful border border-red-200 shadow-sm ml-auto sm:ml-0">
                                 <i class="fa-solid fa-bullhorn text-red-500"></i> สรุปค้างจ่ายสัปดาห์ 1-<span id="btnWeekOverdueRange">1</span>
                             </button>
+                            <!-- Quick Multi-edit button for Teachers & Treasurers -->
+                            <button id="btnQuickBatchPay" onclick="batchPayAllWeek()" class="bounce-btn px-3.5 py-1.5 bg-gradient-to-r from-emerald-400 to-teal-400 hover:from-emerald-500 hover:to-teal-500 text-white font-bold text-xs flex items-center gap-1.5 shadow-sm font-playful hidden">
+                                <i class="fa-solid fa-check-double"></i> ให้ทุกคนจ่ายครบ (10฿) สัปดาห์นี้
+                            </button>
                         </div>
 
-                        <!-- Export Actions (For Teacher Only) -->
-                        <div id="exportActionsGroup" class="flex items-center gap-2 flex-wrap">
-                            <span class="text-xs text-gray-400 font-bold font-playful mr-1"><i class="fa-solid fa-file-export"></i> ส่งออกรายงาน:</span>
-                            <button onclick="exportSavings('.pdf')" class="bounce-btn px-3.5 py-1.5 bg-red-400 hover:bg-red-500 text-white text-xs font-bold shadow-sm flex items-center gap-1 font-playful">
-                                <i class="fa-solid fa-file-pdf"></i> PDF
+                        <!-- Import & Export Actions -->
+                        <div class="flex items-center gap-2 flex-wrap">
+                            <!-- Import from Google Sheets / CSV Button (Teacher Only) -->
+                            <button id="btnImportSheets" onclick="openImportModal()" class="bounce-btn px-3.5 py-1.5 bg-green-500 hover:bg-green-600 text-white text-xs font-bold shadow-sm flex items-center gap-1.5 font-playful hidden">
+                                <i class="fa-file-csv fa-solid"></i> นำเข้าข้อมูลจาก Google Sheets
                             </button>
-                            <button onclick="exportSavings('.xlsx')" class="bounce-btn px-3.5 py-1.5 bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-bold shadow-sm flex items-center gap-1 font-playful">
-                                <i class="fa-solid fa-file-excel"></i> Excel
-                            </button>
-                            <button onclick="exportSavings('.png''.tiff')" class="bounce-btn px-3.5 py-1.5 bg-blue-400 hover:bg-blue-500 text-white text-xs font-bold shadow-sm flex items-center gap-1 font-playful">
-                                <i class="fa-solid fa-file-image"></i> PNG
-                            </button>
+                            
+                            <div id="exportActionsGroup" class="flex items-center gap-2 flex-wrap">
+                                <span class="text-xs text-gray-400 font-bold font-playful mr-1"><i class="fa-solid fa-file-export"></i> ส่งออกรายงาน:</span>
+                                <button onclick="exportSavings('pdf')" class="bounce-btn px-3.5 py-1.5 bg-red-400 hover:bg-red-500 text-white text-xs font-bold shadow-sm flex items-center gap-1 font-playful">
+                                    <i class="fa-solid fa-file-pdf"></i> PDF
+                                </button>
+                                <button onclick="exportSavings('excel')" class="bounce-btn px-3.5 py-1.5 bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-bold shadow-sm flex items-center gap-1 font-playful">
+                                    <i class="fa-solid fa-file-excel"></i> Excel
+                                </button>
+                                <button onclick="exportSavings('png')" class="bounce-btn px-3.5 py-1.5 bg-blue-400 hover:bg-blue-500 text-white text-xs font-bold shadow-sm flex items-center gap-1 font-playful">
+                                    <i class="fa-solid fa-file-image"></i> PNG
+                                </button>
+                            </div>
                         </div>
                     </div>
 
-                    <!-- Printable Container for Export -->
-                    <div id="savingsExportArea" class="bg-white/90 rounded-[2rem] p-4 border-2 border-pink-100 shadow-sm">
-                        <div class="text-center mb-4 border-b border-pink-100 pb-2">
-                            <h2 class="text-lg md:text-xl font-bold text-pink-500 font-playful">
-                                ตารางบันทึกการออมเงินนักเรียน 🌸
-                            </h2>
-                            <p class="text-xs text-purple-600 font-bold mt-0.5">
-                                ภาคเรียนที่ <span id="exportSemester">1</span> ปีการศึกษา <span id="exportAcademicYear">2569</span>
-                            </p>
-                            <p class="text-xs text-gray-500 font-medium mt-1" id="savingsExportTitle">สัปดาห์ที่ 1 - รวมเงินออมประจำสัปดาห์</p>
+                    <!-- Printable Export Area Container -->
+                    <div id="savingsExportArea" class="bg-white/80 rounded-2xl p-4 border-2 border-pink-100 shadow-inner overflow-x-auto custom-scrollbar">
+                        <div class="text-center mb-4 pb-3 border-b-2 border-pink-100">
+                            <h3 class="text-base md:text-lg font-bold text-pink-500 font-playful">รายงานสรุปการออมเงินห้องเรียน</h3>
+                            <p class="text-xs text-gray-500 font-medium">ภาคเรียนที่ <span id="exportSemester">1</span> ปีการศึกษา <span id="exportAcademicYear">2569</span></p>
+                            <p id="savingsExportTitle" class="text-xs font-bold text-gray-600 mt-1 font-playful">สัปดาห์ที่ 1 - บันทึกการฝากเงินประจำสัปดาห์</p>
                         </div>
 
-                        <!-- Savings Table -->
-                        <div class="overflow-x-auto custom-scrollbar">
-                            <table class="w-full text-left border-collapse min-w-[650px]">
-                               <thead>
-                                   <tr class="bg-pastel-pink/50 text-pink-700 text-xs font-bold uppercase border-b-2 border-pink-200 font-playful">
-                                       <th class="p-3 text-center rounded-l-full">เลขที่</th>
-                                       <th class="p-3 text-center">รหัส</th>
-                                       <th class="p-3">ชื่อ-นามสกุล</th>
-                                       <th class="p-3 text-right">ฝากสัปดาห์นี้ (บาท)</th>
-                                       <th class="p-3 text-center">สถานะสัปดาห์นี้</th>
-                                       <th class="p-3 text-right text-red-500">สะสมค้างจ่าย (ถึง wk <span id="thOverdueCurrentWeek">1</span>)</th>
-                                       <th class="p-3 text-right">รวมฝากสะสม (40 wk)</th>
-                                       <th class="p-3 text-center rounded-r-full" id="savingsActionHeader">จัดการ</th>
-                                   </tr>
-                               </thead>
-                               <tbody id="savingsTableBody" class="text-sm divide-y divide-pink-50">
-                                   <!-- Dynamic Rows -->
-                               </tbody>
-                               <tfoot>
-                                   <tr class="bg-pink-50/80 font-bold text-gray-700 text-sm border-t-2 border-pink-200 font-playful">
-                                       <td colspan="3" class="p-3 text-right">รวมทั้งสิ้นสัปดาห์นี้:</td>
-                                       <td id="weeklyTotalSum" class="p-3 text-right text-pink-600 font-extrabold text-base">0.00</td>
-                                       <td colspan="1" class="p-3 text-center text-xs text-gray-500" id="weeklyCompletionRate">ชำระแล้ว 0/0 คน</td>
-                                       <td id="totalOverdueSum" class="p-3 text-right text-red-500 font-extrabold text-base">0.00</td>
-                                       <td id="grandTotalSavingsSum" class="p-3 text-right text-purple-600 font-extrabold text-base">0.00</td>
-                                       <td></td>
-                                   </tr>
-                               </tfoot>
-                            </table>
-                        </div>
+                        <table class="w-full text-left border-collapse min-w-[700px]">
+                            <thead>
+                                <tr class="bg-pink-100/70 text-pink-700 text-xs font-bold font-playful">
+                                    <th class="p-3 text-center rounded-l-xl w-14">เลขที่</th>
+                                    <th class="p-3 text-center w-24">รหัส</th>
+                                    <th class="p-3">ชื่อ-นามสกุล</th>
+                                    <th class="p-3 text-right w-32">ยอดฝากสัปดาห์นี้</th>
+                                    <th class="p-3 text-center w-36">สถานะสัปดาห์นี้</th>
+                                    <th class="p-3 text-right w-36">สะสมค้างจ่าย</th>
+                                    <th class="p-3 text-right w-32 rounded-r-xl">รวมออมสะสม</th>
+                                    <th id="savingsActionHeader" class="p-3 text-center w-28 rounded-r-xl">จัดการ</th>
+                                </tr>
+                            </thead>
+                            <tbody id="savingsTableBody" class="text-xs md:text-sm divide-y divide-pink-50 font-medium">
+                                <!-- Dynamic Rows -->
+                            </tbody>
+                            <tfoot>
+                                <tr class="bg-pink-50/80 font-bold font-playful text-xs md:text-sm">
+                                    <td colspan="3" class="p-3 text-right text-gray-600">รวมยอดทั้งหมดในสัปดาห์นี้ / ค้างจ่ายสะสม:</td>
+                                    <td class="p-3 text-right text-pink-600" id="weeklyTotalSum">0.00 ฿</td>
+                                    <td class="p-3 text-center text-emerald-600" id="weeklyCompletionRate">ชำระแล้ว 0/0 คน</td>
+                                    <td class="p-3 text-right text-red-500" id="totalOverdueSum">0.00 ฿</td>
+                                    <td class="p-3 text-right text-purple-600" id="grandTotalSavingsSum">0.00 ฿</td>
+                                    <td id="savingsActionFooter" class="p-3"></td>
+                                </tr>
+                            </tfoot>
+                        </table>
                     </div>
                 </div>
             </section>
@@ -383,30 +391,29 @@
                 <div class="glass-card rounded-[2.5rem] p-4 md:p-6 shadow-md">
                     <div class="flex flex-wrap items-center justify-between gap-4 mb-4">
                         <div>
-                            <h2 class="text-lg md:text-xl font-bold text-purple-600 font-playful">รายการบันทึกค่าใช้จ่ายห้องเรียน 📝</h2>
-                            <p class="text-xs text-gray-400 font-medium">บันทึกรายรับ-รายจ่ายส่วนกลางของห้องเรียน</p>
+                            <h3 class="text-base md:text-lg font-bold text-purple-600 font-playful flex items-center gap-2">
+                                <i class="fa-solid fa-calculator"></i> บันทึกรายการรายรับ-รายจ่ายห้องเรียน
+                            </h3>
+                            <p class="text-xs text-gray-400 font-medium">จัดการรายการซื้ออุปกรณ์หรือเงินยอดยกมาของห้องเรียน</p>
                         </div>
-
-                        <!-- Add Expense Button (Teacher & Treasurer Only) -->
-                        <button id="btnAddExpenseBtn" onclick="openExpenseModal()" class="bounce-btn px-4 py-2 bg-gradient-to-r from-purple-400 to-pink-400 hover:from-purple-500 hover:to-pink-500 text-white text-xs font-bold shadow-md flex items-center gap-1.5 font-playful hidden">
-                            <i class="fa-solid fa-plus-circle"></i> เพิ่มรายการรายรับ/รายจ่าย
+                        <button id="btnAddExpenseBtn" onclick="openExpenseModal()" class="bounce-btn px-4 py-2 bg-gradient-to-r from-purple-400 to-indigo-400 hover:from-purple-500 hover:to-indigo-500 text-white font-bold text-xs md:text-sm shadow-md font-playful flex items-center gap-1.5 hidden">
+                            <i class="fa-solid fa-plus-circle"></i> เพิ่มรายการรับ-จ่าย
                         </button>
                     </div>
 
-                    <!-- Expenses Table -->
-                    <div class="overflow-x-auto custom-scrollbar bg-white/90 rounded-[2rem] p-4 border-2 border-purple-100 shadow-sm">
-                        <table class="w-full text-left border-collapse min-w-[600px]">
+                    <div class="bg-white/80 rounded-2xl p-4 border-2 border-purple-100 shadow-inner overflow-x-auto custom-scrollbar">
+                        <table class="w-full text-left border-collapse min-w-[650px]">
                             <thead>
-                                <tr class="bg-purple-100/70 text-purple-700 text-xs font-bold uppercase border-b-2 border-purple-200 font-playful">
-                                    <th class="p-3 text-center rounded-l-full">วันที่/เวลา</th>
-                                    <th class="p-3 text-center">ประเภท</th>
-                                    <th class="p-3">รายการ / รายรายละเอียด</th>
-                                    <th class="p-3 text-right">จำนวนเงิน (บาท)</th>
-                                    <th class="p-3 text-center">ผู้บันทึก</th>
-                                    <th class="p-3 text-center rounded-r-full" id="expenseActionHeader">จัดการ</th>
+                                <tr class="bg-purple-100/70 text-purple-700 text-xs font-bold font-playful">
+                                    <th class="p-3 text-center rounded-l-xl w-36">วัน-เวลา</th>
+                                    <th class="p-3 text-center w-28">ประเภท</th>
+                                    <th class="p-3">รายการ</th>
+                                    <th class="p-3 text-right w-32">จำนวนเงิน (บาท)</th>
+                                    <th class="p-3 text-center w-36">ผู้บันทึก</th>
+                                    <th id="expenseActionHeader" class="p-3 text-center w-28 rounded-r-xl">จัดการ</th>
                                 </tr>
                             </thead>
-                            <tbody id="expensesTableBody" class="text-sm divide-y divide-purple-50">
+                            <tbody id="expensesTableBody" class="text-xs md:text-sm divide-y divide-purple-50 font-medium">
                                 <!-- Dynamic Rows -->
                             </tbody>
                         </table>
@@ -414,119 +421,137 @@
                 </div>
             </section>
 
-            <!-- TAB 3: STUDENT MANAGEMENT & TREASURER ASSIGNMENT (TEACHER ONLY) -->
+            <!-- TAB 3: STUDENTS & TREASURER MANAGEMENT (TEACHER ONLY) -->
             <section id="studentsTab" class="space-y-4 hidden animate-pop-in">
                 <div class="glass-card rounded-[2.5rem] p-4 md:p-6 shadow-md">
                     <div class="flex flex-wrap items-center justify-between gap-4 mb-4">
                         <div>
-                            <h2 class="text-lg md:text-xl font-bold text-pink-600 font-playful">จัดการรายชื่อนักเรียน & กำหนดเหรัญญิก 👑</h2>
-                            <p class="text-xs text-gray-400 font-medium">ครูสามารถแก้ไขชื่อ รหัส รหัสผ่าน เลขที่ และสิทธิ์เหรัญญิกได้ที่นี่</p>
+                            <h3 class="text-base md:text-lg font-bold text-pink-500 font-playful flex items-center gap-2">
+                                <i class="fa-solid fa-users-gear"></i> จัดการรายชื่อนักเรียน & กำหนดเหรัญญิก
+                            </h3>
+                            <p class="text-xs text-gray-400 font-medium">เพิ่ม/ลบรายชื่อนักเรียน และแต่งตั้งนักเรียนเป็นเหรัญญิกดูแลห้อง</p>
                         </div>
-                        <button onclick="openAddStudentModal()" class="bounce-btn px-4 py-2 bg-pink-400 hover:bg-pink-500 text-white text-xs font-bold shadow-md flex items-center gap-1.5 font-playful">
+                        <button onclick="openAddStudentModal()" class="bounce-btn px-4 py-2 bg-pink-400 hover:bg-pink-500 text-white font-bold text-xs md:text-sm shadow-md font-playful flex items-center gap-1.5">
                             <i class="fa-solid fa-user-plus"></i> เพิ่มนักเรียนใหม่
                         </button>
                     </div>
 
-                    <div class="overflow-x-auto custom-scrollbar bg-white/90 rounded-[2rem] p-4 border-2 border-pink-100 shadow-sm">
-                        <table class="w-full text-left border-collapse min-w-[650px]">
+                    <div class="bg-white/80 rounded-2xl p-4 border-2 border-pink-100 shadow-inner overflow-x-auto custom-scrollbar">
+                        <table class="w-full text-left border-collapse min-w-[600px]">
                             <thead>
-                                <tr class="bg-pink-100/70 text-pink-700 text-xs font-bold uppercase border-b-2 border-pink-200 font-playful">
-                                    <th class="p-3 text-center rounded-l-full">เลขที่</th>
-                                    <th class="p-3 text-center">รหัสนักเรียน</th>
+                                <tr class="bg-pink-100/70 text-pink-700 text-xs font-bold font-playful">
+                                    <th class="p-3 text-center rounded-l-xl w-16">เลขที่</th>
+                                    <th class="p-3 text-center w-28">รหัสนักเรียน</th>
                                     <th class="p-3">ชื่อ-นามสกุล</th>
-                                    <th class="p-3 text-center">รหัสผ่าน</th>
-                                    <th class="p-3 text-center">สถานะเหรัญญิก</th>
-                                    <th class="p-3 text-center rounded-r-full">จัดการ</th>
+                                    <th class="p-3 text-center w-32">รหัสผ่าน</th>
+                                    <th class="p-3 text-center w-36">สถานะเหรัญญิก</th>
+                                    <th class="p-3 text-center w-28 rounded-r-xl">จัดการ</th>
                                 </tr>
                             </thead>
-                            <tbody id="studentsTableBody" class="text-sm divide-y divide-pink-50">
-                                <!-- Dynamic Rows -->
+                            <tbody id="studentsTableBody" class="text-xs md:text-sm divide-y divide-pink-50 font-medium">
+                                <!-- Dynamic Student Rows -->
                             </tbody>
                         </table>
+                    </div>
                 </div>
             </section>
-
         </main>
-
-        <!-- FOOTER -->
-        <footer class="mt-10 text-center text-xs text-gray-400 py-4 font-playful">
-            <p>🌸 ระบบออมเงินนักเรียนรายสัปดาห์ สไตล์พาสเทลการ์ตูน จิบิ 3D 🌸</p>
-        </footer>
     </div>
 
-    <!-- MODAL 1: EDIT SAVINGS AMOUNT -->
+    <!-- FOOTER -->
+    <footer class="text-center py-4 text-xs text-gray-400 font-medium mt-auto">
+        <p>ระบบออมเงินห้องเรียน & บันทึกค่าใช้จ่าย ✨ ออกแบบด้วยความรักเพื่อคุณครูและนักเรียน</p>
+    </footer>
+
+    <!-- MODAL 1: ADD/EDIT SAVINGS AMOUNT -->
     <div id="savingsModal" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
         <div class="glass-card rounded-[2.5rem] p-6 w-full max-w-sm shadow-2xl relative border-4 border-white animate-pop-in">
-            <h3 class="text-lg font-bold text-pink-500 mb-2 font-playful"><i class="fa-solid fa-pen-to-square"></i> แก้ไขยอดเงินออม</h3>
-            <p id="savingsModalStudentName" class="text-xs text-gray-500 mb-4 font-medium">นักเรียน: -</p>
-            
+            <h3 class="text-lg font-bold text-pink-500 mb-2 font-playful flex items-center gap-2">
+                <i class="fa-solid fa-coins"></i> บันทึกยอดเงินฝาก
+            </h3>
+            <p id="savingsModalStudentName" class="text-xs text-gray-500 mb-4 font-bold">นักเรียน: -</p>
+
             <form onsubmit="saveSavingsEdit(event)" class="space-y-4">
                 <input type="hidden" id="modalSavingsStudentId">
                 <div>
-                    <label class="block text-xs font-bold text-gray-600 mb-1 font-playful">ยอดเงินออมสัปดาห์นี้ (บาท)</label>
-                    <input type="number" step="0.5" min="0" id="modalSavingsAmount" required class="w-full p-3 rounded-full border-2 border-pink-200 focus:border-pink-400 focus:outline-none text-base font-extrabold text-center text-pink-600 font-playful shadow-inner">
+                    <label class="block text-xs font-bold text-gray-600 mb-1 font-playful">จำนวนเงินฝากสัปดาห์นี้ (บาท):</label>
+                    <input type="number" id="modalSavingsAmount" min="0" max="1000" step="1" required class="w-full px-4 py-2.5 rounded-full border-2 border-pink-200 text-sm font-bold text-pink-600 focus:outline-none focus:border-pink-400 shadow-inner">
+                    <p class="text-[10px] text-gray-400 mt-1">เป้าหมายมาตรฐานสัปดาห์ละ 10 บาท</p>
                 </div>
+
                 <div class="flex gap-2 pt-2">
                     <button type="button" onclick="closeModal('savingsModal')" class="bounce-btn w-1/2 py-2.5 border-2 border-gray-200 text-gray-500 font-bold text-xs font-playful">ยกเลิก</button>
-                    <button type="submit" class="bounce-btn w-1/2 py-2.5 bg-pink-400 hover:bg-pink-500 text-white font-bold text-xs shadow-md font-playful">บันทึกข้อมูล</button>
+                    <button type="submit" class="bounce-btn w-1/2 py-2.5 bg-pink-400 hover:bg-pink-500 text-white font-bold text-xs shadow-md font-playful">บันทึก</button>
                 </div>
             </form>
         </div>
     </div>
 
-    <!-- MODAL 2: ADD/EDIT EXPENSE -->
+    <!-- MODAL 2: ADD/EDIT EXPENSES -->
     <div id="expenseModal" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
         <div class="glass-card rounded-[2.5rem] p-6 w-full max-w-md shadow-2xl relative border-4 border-white animate-pop-in">
-            <h3 id="expenseModalTitle" class="text-lg font-bold text-purple-600 mb-4 font-playful"><i class="fa-solid fa-receipt"></i> เพิ่มรายการค่าใช้จ่าย/รายรับ</h3>
-            
-            <form onsubmit="saveExpense(event)" class="space-y-3">
+            <h3 id="expenseModalTitle" class="text-lg font-bold text-purple-600 mb-4 font-playful flex items-center gap-2">
+                <i class="fa-solid fa-receipt"></i> เพิ่มรายการรายรับ/รายจ่าย
+            </h3>
+
+            <form onsubmit="saveExpense(event)" class="space-y-4">
                 <input type="hidden" id="modalExpenseId">
                 <div>
-                    <label class="block text-xs font-bold text-gray-600 mb-1 font-playful">ประเภทรายการ</label>
-                    <select id="modalExpenseType" class="w-full p-2.5 rounded-full border-2 border-purple-200 text-xs font-bold focus:outline-none shadow-sm cursor-pointer font-playful">
-                        <option value="expense">🔴 รายจ่าย (Expense)</option>
-                        <option value="income">🟢 รายรับ (Income)</option>
+                    <label class="block text-xs font-bold text-gray-600 mb-1 font-playful">ประเภทรายการ:</label>
+                    <select id="modalExpenseType" class="w-full px-4 py-2.5 rounded-full border-2 border-purple-200 text-sm font-bold text-purple-700 bg-white focus:outline-none shadow-sm cursor-pointer">
+                        <option value="expense">🔴 รายจ่ายห้องเรียน (ซื้ออุปกรณ์, อื่นๆ)</option>
+                        <option value="income">🟢 รายรับ / เงินสมทบ / ยอดยกมา</option>
                     </select>
                 </div>
+
                 <div>
-                    <label class="block text-xs font-bold text-gray-600 mb-1 font-playful">รายละเอียดรายการ</label>
-                    <input type="text" id="modalExpenseTitle" required placeholder="เช่น ซื้อแปรงลบกระดาน" class="w-full p-2.5 rounded-full border-2 border-purple-200 text-xs focus:outline-none shadow-inner">
+                    <label class="block text-xs font-bold text-gray-600 mb-1 font-playful">ชื่อรายการ:</label>
+                    <input type="text" id="modalExpenseTitle" required placeholder="เช่น ซื้อกระดาษ A4, สมุดบัญชี" class="w-full px-4 py-2.5 rounded-full border-2 border-purple-200 text-sm font-bold text-gray-700 focus:outline-none focus:border-purple-400 shadow-inner">
                 </div>
+
                 <div>
-                    <label class="block text-xs font-bold text-gray-600 mb-1 font-playful">จำนวนเงิน (บาท)</label>
-                    <input type="number" step="0.5" min="0" id="modalExpenseAmount" required placeholder="0.00" class="w-full p-2.5 rounded-full border-2 border-purple-200 text-xs font-bold text-purple-600 focus:outline-none shadow-inner font-playful">
+                    <label class="block text-xs font-bold text-gray-600 mb-1 font-playful">จำนวนเงิน (บาท):</label>
+                    <input type="number" id="modalExpenseAmount" min="0" step="0.25" required placeholder="0.00" class="w-full px-4 py-2.5 rounded-full border-2 border-purple-200 text-sm font-bold text-purple-600 focus:outline-none focus:border-purple-400 shadow-inner">
                 </div>
+
                 <div class="flex gap-2 pt-2">
                     <button type="button" onclick="closeModal('expenseModal')" class="bounce-btn w-1/2 py-2.5 border-2 border-gray-200 text-gray-500 font-bold text-xs font-playful">ยกเลิก</button>
-                    <button type="submit" class="bounce-btn w-1/2 py-2.5 bg-purple-500 hover:bg-purple-600 text-white font-bold text-xs shadow-md font-playful">บันทึกข้อมูล</button>
+                    <button type="submit" class="bounce-btn w-1/2 py-2.5 bg-purple-500 hover:bg-purple-600 text-white font-bold text-xs shadow-md font-playful">บันทึก</button>
                 </div>
             </form>
         </div>
     </div>
 
-    <!-- MODAL 3: EDIT STUDENT INFO (TEACHER ONLY) -->
+    <!-- MODAL 3: ADD/EDIT STUDENT -->
     <div id="studentModal" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
-        <div class="glass-card rounded-[2.5rem] p-6 w-full max-w-sm shadow-2xl relative border-4 border-white animate-pop-in">
-            <h3 id="studentModalTitle" class="text-lg font-bold text-pink-500 mb-4 font-playful"><i class="fa-solid fa-user-pen"></i> แก้ไขข้อมูลนักเรียน</h3>
-            
+        <div class="glass-card rounded-[2.5rem] p-6 w-full max-w-md shadow-2xl relative border-4 border-white animate-pop-in">
+            <h3 id="studentModalTitle" class="text-lg font-bold text-pink-500 mb-4 font-playful flex items-center gap-2">
+                <i class="fa-solid fa-user-plus"></i> เพิ่มนักเรียนใหม่
+            </h3>
+
             <form onsubmit="saveStudentInfo(event)" class="space-y-3">
                 <input type="hidden" id="modalStudentOriginalId">
-                <div>
-                    <label class="block text-xs font-bold text-gray-600 mb-1 font-playful">เลขที่</label>
-                    <input type="number" id="modalStudentNo" required class="w-full p-2.5 rounded-full border-2 border-pink-200 text-xs focus:outline-none shadow-inner font-playful">
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-bold text-gray-600 mb-1 font-playful">เลขที่:</label>
+                        <input type="number" id="modalStudentNo" min="1" required class="w-full px-4 py-2.5 rounded-full border-2 border-pink-200 text-sm font-bold text-gray-700 focus:outline-none shadow-inner">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-gray-600 mb-1 font-playful">รหัสนักเรียน:</label>
+                        <input type="text" id="modalStudentCode" required placeholder="เช่น 1006" class="w-full px-4 py-2.5 rounded-full border-2 border-pink-200 text-sm font-bold text-gray-700 focus:outline-none shadow-inner">
+                    </div>
                 </div>
+
                 <div>
-                    <label class="block text-xs font-bold text-gray-600 mb-1 font-playful">รหัสนักเรียน (สำหรับเข้าสู่ระบบ)</label>
-                    <input type="text" id="modalStudentCode" required class="w-full p-2.5 rounded-full border-2 border-pink-200 text-xs focus:outline-none shadow-inner">
+                    <label class="block text-xs font-bold text-gray-600 mb-1 font-playful">ชื่อ-นามสกุล:</label>
+                    <input type="text" id="modalStudentName" required placeholder="เด็กชาย..." class="w-full px-4 py-2.5 rounded-full border-2 border-pink-200 text-sm font-bold text-gray-700 focus:outline-none shadow-inner">
                 </div>
+
                 <div>
-                    <label class="block text-xs font-bold text-gray-600 mb-1 font-playful">ชื่อ-นามสกุล</label>
-                    <input type="text" id="modalStudentName" required class="w-full p-2.5 rounded-full border-2 border-pink-200 text-xs focus:outline-none shadow-inner">
+                    <label class="block text-xs font-bold text-gray-600 mb-1 font-playful">รหัสผ่านสำหรับนักเรียน:</label>
+                    <input type="text" id="modalStudentPassword" required value="1234" class="w-full px-4 py-2.5 rounded-full border-2 border-pink-200 text-sm font-bold text-pink-600 focus:outline-none shadow-inner">
                 </div>
-                <div>
-                    <label class="block text-xs font-bold text-gray-600 mb-1 font-playful">รหัสผ่าน</label>
-                    <input type="text" id="modalStudentPassword" required placeholder="เริ่มต้น 1234" class="w-full p-2.5 rounded-full border-2 border-pink-200 text-xs font-mono focus:outline-none shadow-inner">
-                </div>
+
                 <div class="flex gap-2 pt-2">
                     <button type="button" onclick="closeModal('studentModal')" class="bounce-btn w-1/2 py-2.5 border-2 border-gray-200 text-gray-500 font-bold text-xs font-playful">ยกเลิก</button>
                     <button type="submit" class="bounce-btn w-1/2 py-2.5 bg-pink-400 hover:bg-pink-500 text-white font-bold text-xs shadow-md font-playful">บันทึก</button>
@@ -538,46 +563,52 @@
     <!-- MODAL 4: CHANGE PASSWORD -->
     <div id="changePasswordModal" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
         <div class="glass-card rounded-[2.5rem] p-6 w-full max-w-sm shadow-2xl relative border-4 border-white animate-pop-in">
-            <h3 class="text-lg font-bold text-yellow-600 mb-4 font-playful"><i class="fa-solid fa-key"></i> เปลี่ยนรหัสผ่าน</h3>
-            
-            <form onsubmit="handleChangePassword(event)" class="space-y-3">
+            <h3 class="text-lg font-bold text-yellow-600 mb-4 font-playful flex items-center gap-2">
+                <i class="fa-solid fa-key"></i> เปลี่ยนรหัสผ่าน
+            </h3>
+
+            <form onsubmit="handleChangePassword(event)" class="space-y-4">
                 <div>
-                    <label class="block text-xs font-bold text-gray-600 mb-1 font-playful">รหัสผ่านใหม่</label>
-                    <input type="password" id="newPassword" required placeholder="กรอกรหัสผ่านใหม่" class="w-full p-2.5 rounded-full border-2 border-yellow-200 text-xs focus:outline-none shadow-inner">
+                    <label class="block text-xs font-bold text-gray-600 mb-1 font-playful">รหัสผ่านใหม่:</label>
+                    <input type="password" id="newPassword" required placeholder="อย่างน้อย 4 ตัวอักษร" class="w-full px-4 py-2.5 rounded-full border-2 border-yellow-200 text-sm font-bold text-gray-700 focus:outline-none shadow-inner">
                 </div>
                 <div>
-                    <label class="block text-xs font-bold text-gray-600 mb-1 font-playful">ยืนยันรหัสผ่านใหม่</label>
-                    <input type="password" id="confirmNewPassword" required placeholder="ยืนยันรหัสผ่านอีกครั้ง" class="w-full p-2.5 rounded-full border-2 border-yellow-200 text-xs focus:outline-none shadow-inner">
+                    <label class="block text-xs font-bold text-gray-600 mb-1 font-playful">ยืนยันรหัสผ่านใหม่:</label>
+                    <input type="password" id="confirmNewPassword" required placeholder="กรอกรหัสผ่านใหม่อีกครั้ง" class="w-full px-4 py-2.5 rounded-full border-2 border-yellow-200 text-sm font-bold text-gray-700 focus:outline-none shadow-inner">
                 </div>
+
                 <div class="flex gap-2 pt-2">
                     <button type="button" onclick="closeModal('changePasswordModal')" class="bounce-btn w-1/2 py-2.5 border-2 border-gray-200 text-gray-500 font-bold text-xs font-playful">ยกเลิก</button>
-                    <button type="submit" class="bounce-btn w-1/2 py-2.5 bg-yellow-400 hover:bg-yellow-500 text-white font-bold text-xs shadow-md font-playful">อัปเดตรหัสผ่าน</button>
+                    <button type="submit" class="bounce-btn w-1/2 py-2.5 bg-yellow-500 hover:bg-yellow-600 text-white font-bold text-xs shadow-md font-playful">เปลี่ยนรหัสผ่าน</button>
                 </div>
             </form>
         </div>
     </div>
 
-    <!-- MODAL 5: EDIT SEMESTER & ACADEMIC YEAR (TEACHER ONLY) -->
+    <!-- MODAL 5: EDIT ACADEMIC TERM / YEAR (TEACHER ONLY) -->
     <div id="termModal" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
         <div class="glass-card rounded-[2.5rem] p-6 w-full max-w-sm shadow-2xl relative border-4 border-white animate-pop-in">
-            <h3 class="text-lg font-bold text-purple-600 mb-4 font-playful"><i class="fa-solid fa-calendar-days"></i> แก้ไขภาคเรียน & ปีการศึกษา</h3>
-            
-            <form onsubmit="handleSaveTerm(event)" class="space-y-3">
+            <h3 class="text-lg font-bold text-purple-600 mb-4 font-playful flex items-center gap-2">
+                <i class="fa-solid fa-calendar-days"></i> ตั้งค่าภาคเรียน & ปีการศึกษา
+            </h3>
+
+            <form onsubmit="handleSaveTerm(event)" class="space-y-4">
                 <div>
-                    <label class="block text-xs font-bold text-gray-600 mb-1 font-playful">ภาคเรียนที่</label>
-                    <select id="modalSemester" class="w-full p-2.5 rounded-full border-2 border-purple-200 text-xs font-bold focus:outline-none shadow-sm font-playful">
+                    <label class="block text-xs font-bold text-gray-600 mb-1 font-playful">ภาคเรียนที่:</label>
+                    <select id="modalSemester" class="w-full px-4 py-2.5 rounded-full border-2 border-purple-200 text-sm font-bold text-purple-700 bg-white focus:outline-none shadow-sm cursor-pointer">
                         <option value="1">ภาคเรียนที่ 1</option>
                         <option value="2">ภาคเรียนที่ 2</option>
-                        <option value="3">ภาคเรียนฤดูร้อน (Summer)</option>
+                        <option value="ภาคฤดูร้อน">ภาคฤดูร้อน (Summer)</option>
                     </select>
                 </div>
                 <div>
-                    <label class="block text-xs font-bold text-gray-600 mb-1 font-playful">ปีการศึกษา (พ.ศ.)</label>
-                    <input type="text" id="modalAcademicYear" required placeholder="เช่น 2569" class="w-full p-2.5 rounded-full border-2 border-purple-200 text-xs font-bold focus:outline-none shadow-inner font-playful">
+                    <label class="block text-xs font-bold text-gray-600 mb-1 font-playful">ปีการศึกษา (พ.ศ.):</label>
+                    <input type="text" id="modalAcademicYear" required placeholder="2569" class="w-full px-4 py-2.5 rounded-full border-2 border-purple-200 text-sm font-bold text-gray-700 focus:outline-none shadow-inner">
                 </div>
+
                 <div class="flex gap-2 pt-2">
                     <button type="button" onclick="closeModal('termModal')" class="bounce-btn w-1/2 py-2.5 border-2 border-gray-200 text-gray-500 font-bold text-xs font-playful">ยกเลิก</button>
-                    <button type="submit" class="bounce-btn w-1/2 py-2.5 bg-purple-500 hover:bg-purple-600 text-white font-bold text-xs shadow-md font-playful">บันทึกเปลี่ยนข้อมูล</button>
+                    <button type="submit" class="bounce-btn w-1/2 py-2.5 bg-purple-500 hover:bg-purple-600 text-white font-bold text-xs shadow-md font-playful">บันทึก</button>
                 </div>
             </form>
         </div>
@@ -586,36 +617,64 @@
     <!-- MODAL 6: OVERDUE & LATE PAYMENTS SUMMARY MODAL -->
     <div id="overdueModal" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
         <div class="glass-card rounded-[2.5rem] p-6 w-full max-w-2xl shadow-2xl relative border-4 border-white animate-pop-in max-h-[90vh] flex flex-col">
-            <div class="flex justify-between items-center mb-4 pb-2 border-b border-red-100">
+            <div class="flex justify-between items-start mb-3 pb-2 border-b-2 border-red-100">
                 <div>
-                    <h3 class="text-lg font-bold text-red-500 font-playful flex items-center gap-2">
-                        <i class="fa-solid fa-triangle-exclamation animate-bounce"></i> รายงานสรุปยอดค้างชำระ / จ่ายเลท 📢
+                    <h3 class="text-base md:text-lg font-bold text-red-500 font-playful flex items-center gap-2">
+                        <i class="fa-solid fa-triangle-exclamation"></i> สรุปยอดค้างชำระสะสม (สัปดาห์ที่ 1 ถึง <span id="overdueModalWeekEnd">1</span>)
                     </h3>
-                    <p class="text-xs text-gray-500 font-medium mt-0.5">
-                        คำนวณจากสัปดาห์ที่ 1 ถึงสัปดาห์ที่ <span id="overdueModalWeekEnd">1</span> (เป้าหมาย 10 บาท/สัปดาห์)
-                    </p>
+                    <p class="text-xs text-gray-500 mt-0.5">คำนวณจากเป้าหมาย 10 บาท/สัปดาห์</p>
                 </div>
-                <button onclick="closeModal('overdueModal')" class="w-8 h-8 rounded-full bg-red-100 text-red-500 font-bold flex items-center justify-center hover:bg-red-200">
-                    ✕
+                <button onclick="closeModal('overdueModal')" class="w-8 h-8 rounded-full bg-red-100 text-red-500 hover:bg-red-200 font-bold flex items-center justify-center">
+                    <i class="fa-solid fa-xmark"></i>
                 </button>
             </div>
 
-            <!-- Scrollable Content -->
-            <div class="overflow-y-auto custom-scrollbar flex-1 pr-1 space-y-3" id="overdueModalList">
-                <!-- Dynamic Content Generated via JS -->
+            <!-- Overdue List Container -->
+            <div id="overdueModalList" class="space-y-3 overflow-y-auto custom-scrollbar my-2 pr-1 max-h-[50vh]">
+                <!-- Populated by JS -->
             </div>
 
-            <!-- Footer Actions -->
-            <div class="pt-4 border-t border-red-100 flex flex-wrap justify-between items-center gap-2 mt-2">
-                <span class="text-xs font-bold text-gray-500 font-playful" id="overdueModalSummaryText">
-                    รวมค้างจ่ายทั้งหมด: 0.00 บาท
-                </span>
-                <div class="flex gap-2">
-                    <button onclick="copyOverdueReminderText()" class="bounce-btn px-4 py-2 bg-red-400 hover:bg-red-500 text-white font-bold text-xs shadow-md font-playful flex items-center gap-1.5">
-                        <i class="fa-solid fa-copy"></i> คัดลอกข้อความแจ้งเตือนผู้ปกครอง
+            <div class="pt-3 border-t-2 border-red-100 mt-auto flex flex-col sm:flex-row justify-between items-center gap-3">
+                <div id="overdueModalSummaryText" class="text-xs font-bold text-red-600 font-playful">
+                    -
+                </div>
+                <div class="flex gap-2 w-full sm:w-auto">
+                    <button onclick="copyOverdueReminderText()" class="bounce-btn w-full sm:w-auto px-4 py-2.5 bg-red-500 hover:bg-red-600 text-white font-bold text-xs shadow-md font-playful flex items-center justify-center gap-1.5">
+                        <i class="fa-solid fa-copy"></i> คัดลอกข้อความแจ้งผู้ปกครอง
                     </button>
-                    <button onclick="closeModal('overdueModal')" class="bounce-btn px-4 py-2 border-2 border-gray-200 text-gray-500 font-bold text-xs font-playful">
-                        ปิด
+                    <button onclick="closeModal('overdueModal')" class="bounce-btn px-4 py-2.5 border-2 border-gray-200 text-gray-500 font-bold text-xs font-playful">ปิด</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL 7: IMPORT FROM GOOGLE SHEETS / CSV (TEACHER ONLY) -->
+    <div id="importModal" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="glass-card rounded-[2.5rem] p-6 w-full max-w-lg shadow-2xl relative border-4 border-white animate-pop-in">
+            <h3 class="text-lg font-bold text-emerald-600 mb-2 font-playful flex items-center gap-2">
+                <i class="fa-solid fa-file-csv"></i> นำเข้าข้อมูลจาก Google Sheets / CSV
+            </h3>
+            <p class="text-xs text-gray-500 mb-4">คุณสามารถส่งออกไฟล์จาก Google Sheets เป็นไฟล์ .CSV แล้วนำมาอัปโหลดเพื่อปรับปรุงรายชื่อและยอดออมเงินได้ทันที</p>
+
+            <div class="space-y-4">
+                <!-- Method 1: File Upload -->
+                <div class="p-4 border-2 border-dashed border-emerald-300 bg-emerald-50/50 rounded-2xl text-center">
+                    <i class="fa-solid fa-cloud-arrow-up text-3xl text-emerald-500 mb-2"></i>
+                    <p class="text-xs font-bold text-gray-700 font-playful">เลือกไฟล์ CSV หรือ Excel (.xlsx, .csv)</p>
+                    <p class="text-[11px] text-gray-400 mt-0.5 mb-3">รูปแบบคอลัมน์: [เลขที่, รหัสนักเรียน, ชื่อ-นามสกุล, ยอดเงินฝากสัปดาห์ปัจจุบัน]</p>
+                    <input type="file" id="importFileInput" accept=".csv, .xlsx, .xls" class="block w-full text-xs text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-emerald-100 file:text-emerald-700 hover:file:bg-emerald-200 cursor-pointer">
+                </div>
+
+                <!-- Method 2: Copy Paste Google Sheets Text -->
+                <div>
+                    <label class="block text-xs font-bold text-gray-600 mb-1 font-playful">หรือวางข้อมูลที่คัดลอกจาก Google Sheets โดยตรง:</label>
+                    <textarea id="importPasteArea" rows="4" placeholder="วางข้อมูลจาก Google Sheets ที่นี่ (คัดลอกจากตาราง Google Sheets แล้วกด Ctrl+V)..." class="w-full p-3 rounded-2xl border-2 border-emerald-200 text-xs font-mono focus:outline-none focus:border-emerald-400 shadow-inner custom-scrollbar"></textarea>
+                </div>
+
+                <div class="flex gap-2 pt-2">
+                    <button type="button" onclick="closeModal('importModal')" class="bounce-btn w-1/2 py-2.5 border-2 border-gray-200 text-gray-500 font-bold text-xs font-playful">ยกเลิก</button>
+                    <button type="button" onclick="handleImportSubmit()" class="bounce-btn w-1/2 py-2.5 bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-xs shadow-md font-playful flex items-center justify-center gap-1">
+                        <i class="fa-solid fa-file-import"></i> นำเข้าข้อมูล
                     </button>
                 </div>
             </div>
@@ -642,7 +701,7 @@
         let teacherAccount = {
             id: "admin",
             name: "คุณครูประจำชั้น",
-            password: "5044",
+            password: "1234",
             role: "teacher"
         };
 
@@ -830,25 +889,31 @@
             const btnAddExpenseBtn = document.getElementById("btnAddExpenseBtn");
             const exportActionsGroup = document.getElementById("exportActionsGroup");
             const btnEditTerm = document.getElementById("btnEditTerm");
+            const btnImportSheets = document.getElementById("btnImportSheets");
+            const btnQuickBatchPay = document.getElementById("btnQuickBatchPay");
 
-            // Rule: คุณครูเท่านั้นที่ปรับเปลี่ยนปีการศึกษา/ภาคเรียน และส่งออกรายงาน
+            // Rule: คุณครูเท่านั้นที่ปรับเปลี่ยนปีการศึกษา/ภาคเรียน นำเข้าจาก Google Sheets และส่งออกรายงาน
             if (currentUser.role === "teacher") {
                 btnTabStudents.classList.remove("hidden");
                 btnTabStudents.classList.add("flex");
                 exportActionsGroup.classList.remove("hidden");
                 btnEditTerm.classList.remove("hidden");
+                btnImportSheets.classList.remove("hidden");
             } else {
                 btnTabStudents.classList.add("hidden");
                 btnTabStudents.classList.remove("flex");
-                exportActionsGroup.classList.add("hidden"); // Teacher only export feature
+                exportActionsGroup.classList.add("hidden");
                 btnEditTerm.classList.add("hidden");
+                btnImportSheets.classList.add("hidden");
             }
 
-            // Rule: ครูและเหรัญญิกเพิ่ม/แก้ไขรายรับรายจ่ายได้
+            // Rule: ครูและเหรัญญิกเพิ่ม/แก้ไขรายรับรายจ่าย และช่วยกันกรอกการฝากเงินสัปดาห์นี้ได้พร้อมกัน
             if (currentUser.role === "teacher" || currentUser.role === "treasurer") {
                 btnAddExpenseBtn.classList.remove("hidden");
+                btnQuickBatchPay.classList.remove("hidden");
             } else {
                 btnAddExpenseBtn.classList.add("hidden");
+                btnQuickBatchPay.classList.add("hidden");
             }
 
             switchTab('savingsTab');
@@ -856,106 +921,201 @@
 
         // TAB SWITCHING
         function switchTab(tabId) {
-            const tabs = ['savingsTab', 'expensesTab', 'studentsTab'];
-            tabs.forEach(t => {
-                const sec = document.getElementById(t);
-                if (sec) sec.classList.add("hidden");
-            });
+            document.getElementById("savingsTab").classList.add("hidden");
+            document.getElementById("expensesTab").classList.add("hidden");
+            document.getElementById("studentsTab").classList.add("hidden");
 
-            const activeSection = document.getElementById(tabId);
-            activeSection.classList.remove("hidden");
-            activeSection.classList.remove("animate-pop-in");
-            void activeSection.offsetWidth; // Trigger reflow for animation restart
-            activeSection.classList.add("animate-pop-in");
-
-            // Update Tab Button Styles
-            const btnSavings = document.getElementById("btnTabSavings");
-            const btnExpenses = document.getElementById("btnTabExpenses");
-            const btnStudents = document.getElementById("btnTabStudents");
-
-            const baseStyle = "bounce-btn px-5 py-3 font-extrabold font-playful text-sm transition-all duration-200 flex items-center gap-2 bg-white text-gray-500 hover:bg-pink-50";
-
-            btnSavings.className = baseStyle;
-            btnExpenses.className = baseStyle;
-            btnStudents.className = baseStyle + " " + (currentUser.role === "teacher" ? "flex" : "hidden");
+            document.getElementById("btnTabSavings").className = "bounce-btn px-5 py-3 font-extrabold font-playful text-sm flex items-center gap-2 bg-white text-gray-500 hover:bg-pink-50";
+            document.getElementById("btnTabExpenses").className = "bounce-btn px-5 py-3 font-extrabold font-playful text-sm flex items-center gap-2 bg-white text-gray-500 hover:bg-pink-50";
+            const btnTabStudents = document.getElementById("btnTabStudents");
+            if (btnTabStudents) {
+                btnTabStudents.className = "bounce-btn px-5 py-3 font-extrabold font-playful text-sm items-center gap-2 bg-white text-gray-500 hover:bg-pink-50";
+            }
 
             if (tabId === 'savingsTab') {
-                btnSavings.className = "bounce-btn px-5 py-3 font-extrabold font-playful text-sm flex items-center gap-2 bg-pink-400 text-white shadow-md";
+                document.getElementById("savingsTab").classList.remove("hidden");
+                document.getElementById("btnTabSavings").className = "bounce-btn px-5 py-3 font-extrabold font-playful text-sm flex items-center gap-2 bg-pink-400 text-white shadow-md";
+                renderSavingsTable();
             } else if (tabId === 'expensesTab') {
-                btnExpenses.className = "bounce-btn px-5 py-3 font-extrabold font-playful text-sm flex items-center gap-2 bg-purple-500 text-white shadow-md";
+                document.getElementById("expensesTab").classList.remove("hidden");
+                document.getElementById("btnTabExpenses").className = "bounce-btn px-5 py-3 font-extrabold font-playful text-sm flex items-center gap-2 bg-purple-500 text-white shadow-md";
+                renderExpensesTable();
             } else if (tabId === 'studentsTab') {
-                btnStudents.className = "bounce-btn px-5 py-3 font-extrabold font-playful text-sm flex items-center gap-2 bg-emerald-500 text-white shadow-md";
+                document.getElementById("studentsTab").classList.remove("hidden");
+                btnTabStudents.className = "bounce-btn px-5 py-3 font-extrabold font-playful text-sm flex items-center gap-2 bg-pink-500 text-white shadow-md";
+                renderStudentsTable();
             }
         }
 
-        // DASHBOARD REFRESH LOGIC
-        function updateDashboardData() {
-            renderSavingsTable();
-            renderExpensesTable();
-            renderStudentsTable();
-            calculateSummaryStats();
-        }
-
-        // OVERDUE CALCULATIONS (Up to selectedWeek, 10 baht target per week)
-        function calculateOverdueStats() {
-            let totalOverdue = 0;
+        // CALCULATE DASHBOARD STATS
+        function calculateSummaryStats() {
+            let totalSavingsAll = 0;
+            let totalExpensesAll = 0;
+            let totalOverdueAll = 0;
             let overdueStudentCount = 0;
 
             students.forEach(s => {
+                let studentTotal = 0;
                 let studentOverdue = 0;
-                for (let w = 1; w <= selectedWeek; w++) {
-                    const paid = savingsData[s.id] ? (savingsData[s.id][`week_${w}`] || 0) : 0;
-                    if (paid < 10) {
-                        studentOverdue += (10 - paid);
+
+                for (let w = 1; w <= 40; w++) {
+                    const amt = savingsData[s.id] ? (savingsData[s.id][`week_${w}`] || 0) : 0;
+                    studentTotal += amt;
+
+                    if (w <= selectedWeek && amt < 10) {
+                        studentOverdue += (10 - amt);
                     }
                 }
-                if (studentOverdue > 0) {
-                    totalOverdue += studentOverdue;
-                    overdueStudentCount++;
-                }
+
+                totalSavingsAll += studentTotal;
+                totalOverdueAll += studentOverdue;
+                if (studentOverdue > 0) overdueStudentCount++;
             });
 
-            return { totalOverdue, overdueStudentCount };
-        }
-
-        // STATS CALCULATIONS
-        function calculateSummaryStats() {
-            // Total Classroom Savings (All Students, All 40 Weeks)
-            let totalSavings = 0;
-            students.forEach(s => {
-                if (savingsData[s.id]) {
-                    for (let w = 1; w <= 40; w++) {
-                        totalSavings += (savingsData[s.id][`week_${w}`] || 0);
-                    }
-                }
-            });
-
-            // Total Expenses
-            let totalExpenses = 0;
-            let totalIncome = 0;
             expensesData.forEach(e => {
-                if (e.type === 'expense') totalExpenses += e.amount;
-                if (e.type === 'income') totalIncome += e.amount;
+                if (e.type === 'expense') totalExpensesAll += e.amount;
+                else if (e.type === 'income') totalSavingsAll += e.amount; // Treat income as addition to funds
             });
 
-            const netBalance = (totalSavings + totalIncome) - totalExpenses;
+            const netBalance = totalSavingsAll - totalExpensesAll;
 
-            // Calculate Overdue Stats
-            const { totalOverdue, overdueStudentCount } = calculateOverdueStats();
-
-            document.getElementById("statTotalSavings").innerHTML = `${totalSavings.toLocaleString('th-TH', {minimumFractionDigits: 2})} <span class="text-xs font-normal">บาท</span>`;
-            document.getElementById("statTotalExpenses").innerHTML = `${totalExpenses.toLocaleString('th-TH', {minimumFractionDigits: 2})} <span class="text-xs font-normal">บาท</span>`;
-            document.getElementById("statNetBalance").innerHTML = `${netBalance.toLocaleString('th-TH', {minimumFractionDigits: 2})} <span class="text-xs font-normal">บาท</span>`;
-
-            // Overdue UI Stats
+            document.getElementById("statTotalSavings").innerHTML = `${totalSavingsAll.toFixed(2)} <span class="text-xs font-normal">บาท</span>`;
+            document.getElementById("statTotalExpenses").innerHTML = `${totalExpensesAll.toFixed(2)} <span class="text-xs font-normal">บาท</span>`;
+            document.getElementById("statNetBalance").innerHTML = `${netBalance.toFixed(2)} <span class="text-xs font-normal">บาท</span>`;
+            
+            document.getElementById("statTotalOverdue").innerHTML = `${totalOverdueAll.toFixed(2)} <span class="text-xs font-normal">บาท</span>`;
             document.getElementById("statOverdueWeekNum").innerText = selectedWeek;
-            document.getElementById("statTotalOverdue").innerHTML = `${totalOverdue.toLocaleString('th-TH', {minimumFractionDigits: 2})} <span class="text-xs font-normal">บาท</span>`;
-            document.getElementById("statOverdueStudentCount").innerText = `${overdueStudentCount} คนมีค้างจ่าย`;
             document.getElementById("btnWeekOverdueRange").innerText = selectedWeek;
-            document.getElementById("thOverdueCurrentWeek").innerText = selectedWeek;
+            document.getElementById("statOverdueStudentCount").innerText = `${overdueStudentCount} คนมีค้างจ่าย`;
         }
 
-        // --- RENDER SAVINGS TABLE ---
+        function updateDashboardData() {
+            renderSavingsTable();
+            renderExpensesTable();
+            if (currentUser && currentUser.role === "teacher") {
+                renderStudentsTable();
+            }
+        }
+
+        // Quick Action: Batch Pay All Students in Current Week (For Teachers/Treasurers)
+        function batchPayAllWeek() {
+            if (confirm(`คุณต้องการปรับให้ทุกคนจ่ายออมครบ 10 บาทในสัปดาห์ที่ ${selectedWeek} หรือไม่?`)) {
+                students.forEach(s => {
+                    if (!savingsData[s.id]) savingsData[s.id] = {};
+                    savingsData[s.id][`week_${selectedWeek}`] = 10;
+                });
+                renderSavingsTable();
+                showToast(`อัปเดตยอดฝากสัปดาห์ที่ ${selectedWeek} ให้ทุกคนครบ 10 บาทแล้ว ✨`);
+            }
+        }
+
+        // Dynamic Quick Single Click Toggle Savings Payment for a student
+        function quickToggleStudentPayment(studentId, targetAmount) {
+            if (currentUser.role !== "teacher" && currentUser.role !== "treasurer") return;
+
+            if (!savingsData[studentId]) savingsData[studentId] = {};
+            const current = savingsData[studentId][`week_${selectedWeek}`] || 0;
+            
+            // Toggle logic: if already paid targetAmount, set to 0, otherwise set to targetAmount
+            const newAmt = (current === targetAmount) ? 0 : targetAmount;
+            savingsData[studentId][`week_${selectedWeek}`] = newAmt;
+
+            renderSavingsTable();
+            showToast(`อัปเดตยอดออมเรียบร้อยแล้ว (${newAmt} บาท)`);
+        }
+
+        // Open Import Modal
+        function openImportModal() {
+            document.getElementById("importFileInput").value = "";
+            document.getElementById("importPasteArea").value = "";
+            document.getElementById("importModal").classList.remove("hidden");
+        }
+
+        // Handle Import Data from Google Sheets / CSV File / Paste
+        function handleImportSubmit() {
+            const fileInput = document.getElementById("importFileInput");
+            const pasteText = document.getElementById("importPasteArea").value.trim();
+
+            if (fileInput.files.length > 0) {
+                const file = fileInput.files[0];
+                const reader = new FileReader();
+
+                if (file.name.endsWith('.xlsx') || file.name.endsWith('.xls')) {
+                    reader.onload = function(e) {
+                        const data = new Uint8Array(e.target.result);
+                        const workbook = XLSX.read(data, {type: 'array'});
+                        const firstSheetName = workbook.SheetNames[0];
+                        const worksheet = workbook.Sheets[firstSheetName];
+                        const json = XLSX.utils.sheet_to_json(worksheet, {header: 1});
+                        processImportMatrix(json);
+                    };
+                    reader.readAsArrayBuffer(file);
+                } else {
+                    reader.onload = function(e) {
+                        const text = e.target.result;
+                        const rows = text.split('\n').map(row => row.split(','));
+                        processImportMatrix(rows);
+                    };
+                    reader.readAsText(file);
+                }
+            } else if (pasteText.length > 0) {
+                // Process pasted tab-separated text directly copied from Google Sheets
+                const rows = pasteText.split('\n').map(row => row.split('\t'));
+                processImportMatrix(rows);
+            } else {
+                showToast("กรุณาเลือกไฟล์หรือวางข้อมูลคัดลอกจาก Google Sheets", false);
+            }
+        }
+
+        // Process imported matrix data (Google Sheets / CSV)
+        function processImportMatrix(rows) {
+            let importedCount = 0;
+
+            rows.forEach(row => {
+                if (!row || row.length < 3) return;
+
+                // Clean text
+                const noStr = String(row[0] || '').trim();
+                const codeStr = String(row[1] || '').trim();
+                const nameStr = String(row[2] || '').trim();
+                const amountVal = parseFloat(row[3]) || 0;
+
+                // Skip header row if contains non-numeric ID / No
+                if (isNaN(parseInt(noStr)) && (codeStr.includes("รหัส") || nameStr.includes("ชื่อ"))) return;
+
+                if (codeStr && nameStr) {
+                    let existingStudent = students.find(s => s.id === codeStr);
+                    if (!existingStudent) {
+                        // Create New Student if not existing
+                        existingStudent = {
+                            id: codeStr,
+                            no: parseInt(noStr) || (students.length + 1),
+                            name: nameStr,
+                            password: "1234",
+                            isTreasurer: false
+                        };
+                        students.push(existingStudent);
+                        savingsData[codeStr] = {};
+                        for (let w = 1; w <= 40; w++) savingsData[codeStr][`week_${w}`] = 0;
+                    }
+
+                    // Assign deposit amount for selected week if provided in column 4
+                    if (row.length >= 4 && !isNaN(amountVal)) {
+                        if (!savingsData[codeStr]) savingsData[codeStr] = {};
+                        savingsData[codeStr][`week_${selectedWeek}`] = amountVal;
+                    }
+
+                    importedCount++;
+                }
+            });
+
+            closeModal("importModal");
+            renderStudentsTable();
+            renderSavingsTable();
+            showToast(`นำเข้าและปรับปรุงข้อมูลนักเรียนสำเร็จ ${importedCount} รายการ! 🎉`);
+        }
+
+        // --- RENDER SAVINGS TABLE (UPDATED WITH MULTI-EDIT QUICK BUTTONS) ---
         function renderSavingsTable() {
             selectedWeek = parseInt(document.getElementById("savingsWeekSelect").value) || 1;
             document.getElementById("savingsExportTitle").innerText = `สัปดาห์ที่ ${selectedWeek} - บันทึกการฝากเงินประจำสัปดาห์ (เป้าหมาย 10 บาท/สัปดาห์)`;
@@ -1024,9 +1184,14 @@
                     <td class="p-3 text-right font-bold text-purple-600 font-playful">${studentTotalAccumulated.toFixed(2)}</td>
                     ${canEdit ? `
                         <td class="p-3 text-center">
-                            <button onclick="openSavingsEditModal('${s.id}')" class="bounce-btn px-3 py-1 bg-pink-100 hover:bg-pink-200 text-pink-600 font-bold text-xs font-playful">
-                                <i class="fa-solid fa-pen"></i> แก้ไข
-                            </button>
+                            <div class="flex items-center justify-center gap-1">
+                                <button onclick="quickToggleStudentPayment('${s.id}', 10)" title="คลิกเร็วเพื่อจ่ายครบ 10 บาท" class="bounce-btn px-2.5 py-1 ${isPaidFull ? 'bg-emerald-500 text-white' : 'bg-emerald-100 hover:bg-emerald-200 text-emerald-700'} font-bold text-xs font-playful">
+                                    <i class="fa-solid fa-bolt"></i> 10฿
+                                </button>
+                                <button onclick="openSavingsEditModal('${s.id}')" class="bounce-btn px-2.5 py-1 bg-pink-100 hover:bg-pink-200 text-pink-600 font-bold text-xs font-playful">
+                                    <i class="fa-solid fa-pen"></i> แก้ไข
+                                </button>
+                            </div>
                         </td>
                     ` : '<td style="display:none"></td>'}
                 `;
